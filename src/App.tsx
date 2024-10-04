@@ -1,5 +1,7 @@
+import ProductPage from './components/Products/ProductPage'
+
 const App = () => {
-  return <div>app</div>
+  return <ProductPage />
 }
 
 export default App
