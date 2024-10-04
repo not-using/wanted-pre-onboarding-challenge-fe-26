@@ -6,6 +6,7 @@ import { getMockData } from '../../mock/api'
 import ProductList from './ProductList'
 import styled from 'styled-components'
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver'
+import ProductHeader from './ProductHeader'
 
 const ProductPage = () => {
   const [products, setProducts] = useState<Product[]>([])
@@ -38,17 +39,14 @@ const ProductPage = () => {
     },
   })
 
-  const totalLength = products.length
-  const totalPrice = products.reduce((acc, product) => acc + product.price, 0)
-
   return (
     <>
-      <FixedHeader>
-        <p>
-          상품 {totalLength} 개, 가격 합계 {totalPrice}
-        </p>
+      <ProductHeader
+        totalLength={products.length}
+        totalPrice={products.reduce((acc, product) => acc + product.price, 0)}
+      >
         {isLoading ? <p>Loading...</p> : null}
-      </FixedHeader>
+      </ProductHeader>
       {isError ? <div>Error</div> : <ProductList products={products} />}
       <InfiniteScrollTrigger ref={triggerRef} />
     </>
@@ -57,22 +55,6 @@ const ProductPage = () => {
 
 export default ProductPage
 
-const FixedHeader = styled.header`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: calc(100% - 40px);
-  padding: 10px 20px;
-  z-index: 10;
-  display: flex;
-  justify-content: space-between;
-  background-color: white;
-  border-bottom: 1px solid gray;
-
-  p {
-    margin: 0;
-  }
-`
 const InfiniteScrollTrigger = styled.div`
   height: 1px;
 `
