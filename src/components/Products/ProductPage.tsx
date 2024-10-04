@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import useFetch from '../../hooks/useFetch'
 import { Product } from '../../types/Product'
 import { ProductDto } from '../../mock/type'
 import { getMockData } from '../../mock/api'
 import ProductList from './ProductList'
 import styled from 'styled-components'
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver'
 
 const ProductPage = () => {
   const [products, setProducts] = useState<Product[]>([])
@@ -12,27 +13,30 @@ const ProductPage = () => {
 
   const page = useRef(1)
   const { fetch, isError, isLoading } = useFetch<ProductDto>()
+  const triggerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    fetch({
-      promise: hasMore && getMockData(page.current),
-      resolve: (response) => {
-        const newProducts = response.datas.map((data) => ({
-          id: data.productId,
-          name: data.productName,
-          price: data.price,
-          boughtDate: data.boughtDate,
-        }))
-        setProducts((prev) => [...prev, ...newProducts])
-        setHasMore(!response.isEnd)
-        page.current++
-      },
-      reject: (error) => {
-        console.error(error)
-      },
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  useIntersectionObserver({
+    targetRef: triggerRef,
+    onIntersect: () => {
+      fetch({
+        promise: hasMore && getMockData(page.current),
+        resolve: (response) => {
+          const newProducts = response.datas.map((data) => ({
+            id: data.productId,
+            name: data.productName,
+            price: data.price,
+            boughtDate: data.boughtDate,
+          }))
+          setProducts((prev) => [...prev, ...newProducts])
+          setHasMore(!response.isEnd)
+          page.current++
+        },
+        reject: (error) => {
+          console.error(error)
+        },
+      })
+    },
+  })
 
   const totalLength = products.length
   const totalPrice = products.reduce((acc, product) => acc + product.price, 0)
@@ -46,6 +50,7 @@ const ProductPage = () => {
         {isLoading ? <p>Loading...</p> : null}
       </FixedHeader>
       {isError ? <div>Error</div> : <ProductList products={products} />}
+      <InfiniteScrollTrigger ref={triggerRef} />
     </>
   )
 }
@@ -67,4 +72,7 @@ const FixedHeader = styled.header`
   p {
     margin: 0;
   }
+`
+const InfiniteScrollTrigger = styled.div`
+  height: 1px;
 `
